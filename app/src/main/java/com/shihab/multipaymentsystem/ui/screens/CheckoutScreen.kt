@@ -206,7 +206,7 @@ fun CheckoutScreen(viewModel: PaymentViewModel = viewModel()) {
         }
 
         Button(
-            onClick = { /* Success Logic */ },
+            onClick = { },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
