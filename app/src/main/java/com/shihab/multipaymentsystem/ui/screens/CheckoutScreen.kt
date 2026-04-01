@@ -8,18 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -33,141 +35,188 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.shihab.multipaymentsystem.models.PaymentType
 import com.shihab.multipaymentsystem.viewmodel.PaymentViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(viewModel: PaymentViewModel = viewModel()) {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5))
         ) {
-            Column(
+            Row(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(16.dp)
                     .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Grand Total", color = Color.White, fontSize = 16.sp)
-                Text(
-                    "৳${viewModel.grandTotal}",
-                    color = Color.White,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        "Grand Total",
+                        color = Color.White,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        "৳${viewModel.grandTotal}",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "Remaining Due",
+                        color = Color(0xFFFFCDD2),
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "৳${if (viewModel.remainingDue > 0) viewModel.remainingDue else 0.0}",
+                        color = if (viewModel.remainingDue > 0) Color.Yellow else Color.White,
+                        fontSize = 24.sp, fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-        Text("Split Payment Methods", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = viewModel.cashInput,
-            onValueChange = { viewModel.cashInput = it },
-            label = { Text("Cash Amount") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            isError = viewModel.isCashError,
-            supportingText = {
-                if (viewModel.isCashError) {
-                    Text("Invalid! Cash cannot contain decimals.", color = Color.Red)
-                }
-            },
-            leadingIcon = { Text(" ৳ ", fontWeight = FontWeight.Bold) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = viewModel.cardInput,
-            onValueChange = { viewModel.cardInput = it },
-            label = { Text("Card Amount") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            leadingIcon = { Text(" 💳 ", fontWeight = FontWeight.Bold) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = viewModel.mfsInput,
-            onValueChange = { viewModel.mfsInput = it },
-            label = { Text("MFS (bKash/Nagad)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            leadingIcon = { Text(" 📱 ", fontWeight = FontWeight.Bold) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-        HorizontalDivider(thickness = 2.dp)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Total Paid:", fontSize = 18.sp)
-            Text(
-                "৳${viewModel.totalPaid}",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF2E7D32)
-            )
-        }
+        Text(
+            "Add Payment",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Remaining Due:", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(
-                text = "৳${if (viewModel.remainingDue > 0) viewModel.remainingDue else 0.0}",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (viewModel.remainingDue > 0) Color.Red else Color.Gray
-            )
-        }
-
-        if (viewModel.changeAmount > 0) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Change to Return:", fontSize = 18.sp, color = Color(0xFFE65100))
-                Text(
-                    "৳${viewModel.changeAmount}",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE65100)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            PaymentType.entries.forEach { type ->
+                FilterChip(
+                    selected = viewModel.selectedMethod == type,
+                    onClick = { viewModel.selectedMethod = type },
+                    label = { Text(type.name) }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        OutlinedTextField(
+            value = viewModel.inputAmount,
+            onValueChange = { viewModel.inputAmount = it },
+            label = { Text("Amount") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        if (viewModel.selectedMethod != PaymentType.CASH) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = viewModel.inputProvider,
+                    onValueChange = { viewModel.inputProvider = it },
+                    label = { Text(if (viewModel.selectedMethod == PaymentType.CARD) "Network (Visa/MC)" else "Provider (bKash)") },
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = viewModel.inputReference,
+                    onValueChange = { viewModel.inputReference = it },
+                    label = { Text(if (viewModel.selectedMethod == PaymentType.CARD) "Last 4 Digits" else "Phone Number") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { viewModel.addPayment() },
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Add to Ledger")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            "Applied Payments",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
+        )
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 8.dp)
+        ) {
+            items(viewModel.paymentsList) { record ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            val icon = when (record.type) {
+                                PaymentType.CASH -> "💵 Cash"
+                                PaymentType.CARD -> "💳 Card (${record.provider})"
+                                PaymentType.MFS -> "📱 MFS (${record.provider})"
+                            }
+                            Text(icon, fontWeight = FontWeight.Bold)
+                            if (record.reference != null) {
+                                Text(
+                                    if (record.type == PaymentType.CARD) "**** ${record.reference}" else record.reference,
+                                    color = Color.Gray,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "৳${record.amount}",
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF2E7D32)
+                            )
+                            IconButton(onClick = { viewModel.removePayment(record) }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Remove",
+                                    tint = Color.Red
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         Button(
-            onClick = {},
+            onClick = { /* Success Logic */ },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             enabled = viewModel.isOrderCompleteEnabled,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2E7D32),
-                disabledContainerColor = Color.LightGray
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
         ) {
-            if (viewModel.isOrderCompleteEnabled) {
-                Icon(Icons.Default.CheckCircle, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Complete Order", fontSize = 18.sp)
-            } else {
-                Icon(Icons.Default.Warning, contentDescription = null, tint = Color.DarkGray)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Due Pending...", fontSize = 18.sp, color = Color.DarkGray)
-            }
+            Text(
+                if (viewModel.isOrderCompleteEnabled) "Complete Order" else "Due Pending...",
+                fontSize = 18.sp
+            )
         }
     }
 }
@@ -175,7 +224,5 @@ fun CheckoutScreen(viewModel: PaymentViewModel = viewModel()) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun CheckoutPreview() {
-    MaterialTheme {
-        CheckoutScreen()
-    }
+    MaterialTheme { CheckoutScreen() }
 }
